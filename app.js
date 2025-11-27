@@ -54,6 +54,36 @@ app.get('/', (req, res) => {
   });
 });
 
+app.get('/api/deploy-test', async (req, res) => {
+  try {
+    // Test database
+    const dbTest = await pool.query('SELECT NOW()');
+    
+    // Test environment
+    const env = {
+      node_env: process.env.NODE_ENV,
+      port: process.env.PORT,
+      database_url: process.env.DATABASE_URL ? 'Set' : 'Not set',
+      jwt_secret: process.env.JWT_SECRET ? 'Set' : 'Not set'
+    };
+    
+    res.json({
+      status: 'deployment_test',
+      server_time: new Date().toISOString(),
+      database_time: dbTest.rows[0].now,
+      environment: env,
+      message: 'If you see this, deployment is partially working'
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      error: error.message,
+      deployment_issue: 'Database or environment problem'
+    });
+  }
+});
+
+
+
 
 
 app.listen(PORT, () => {
