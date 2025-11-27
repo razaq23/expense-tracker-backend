@@ -14,6 +14,7 @@ import analyticsRoutes from './routes/analytics.js';
 dotenv.config();
 
 const app = express();
+<<<<<<< HEAD
 const PORT = process.env.PORT || 5000;
 
 // Middleware
@@ -27,6 +28,15 @@ app.use(cors({
   credentials: true
 }));
 
+=======
+const PORT = process.env.PORT;
+
+// Middleware
+app.use(cors({
+  origin: ["https://your-app.netlify.app", "http://localhost:5000"],
+  credentials: true
+}));
+>>>>>>> bee3b2898842a652f07ad1a7b4cecc860c75af8c
 app.use(express.json());
 
 // Routes
