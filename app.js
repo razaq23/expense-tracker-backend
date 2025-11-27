@@ -1,44 +1,44 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import {pool} from './config/database.js';
+
+// Load environment variables FIRST
+dotenv.config();
+
+// THEN import routes (so they have access to process.env)
 import authRoutes from './routes/auth.js';
-import transactionRoutes from './routes/transactions.js' 
+import transactionRoutes from './routes/transactions.js'; 
 import reportRoutes from './routes/reports.js'; 
 import categoryRoutes from './routes/categories.js';
 import analyticsRoutes from './routes/analytics.js';
-
-
-
-
-dotenv.config();
+import { pool } from './config/database.js';
 
 const app = express();
-
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-
-
 app.use(cors({
   origin: [
     "https://expense-tracker-frontend-u7tw.onrender.com",  
-    "http://localhost:3000"                    // Local development
+    "http://localhost:3000"
   ],
   credentials: true
 }));
-
-
-
 
 app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/transactions', transactionRoutes); // Add this
-app.use('/api/reports', reportRoutes); // Add this
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/reports', reportRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/analytics', analyticsRoutes);
+
+// Add route logging to debug
+console.log('🔍 Route registration:');
+console.log('- /api/auth', typeof authRoutes);
+console.log('- /api/transactions', typeof transactionRoutes);
+// ... add for other routes
 
 // Existing routes
 app.get('/', (req, res) => {
@@ -54,12 +54,36 @@ app.get('/', (req, res) => {
   });
 });
 
+app.get('/api/debug/routes', (req, res) => {
+  const routes = [];
+  
+  app._router.stack.forEach((middleware) => {
+    if (middleware.route) {
+      routes.push({
+        path: middleware.route.path,
+        methods: Object.keys(middleware.route.methods)
+      });
+    } else if (middleware.name === 'router') {
+      middleware.handle.stack.forEach((handler) => {
+        if (handler.route) {
+          routes.push({
+            path: handler.route.path,
+            methods: Object.keys(handler.route.methods)
+          });
+        }
+      });
+    }
+  });
+  
+  res.json({ 
+    registered_routes: routes,
+    total_routes: routes.length
+  });
+});
+
 app.get('/api/deploy-test', async (req, res) => {
   try {
-    // Test database
     const dbTest = await pool.query('SELECT NOW()');
-    
-    // Test environment
     const env = {
       node_env: process.env.NODE_ENV,
       port: process.env.PORT,
@@ -81,10 +105,6 @@ app.get('/api/deploy-test', async (req, res) => {
     });
   }
 });
-
-
-
-
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
