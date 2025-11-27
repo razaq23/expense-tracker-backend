@@ -1,16 +1,16 @@
-import {pool} from '../config/database.js';
+import { pool } from '../config/database.js';
 import bcrypt from 'bcryptjs';
 
 class User {
-  // Create new user
+  // Create new user - USE 'password' to match database
   static async create(userData) {
     const { name, email, password } = userData;
     
     // Hash password before storing
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
     
     const query = `
-      INSERT INTO users (name, email, password) 
+      INSERT INTO users (name, email, password)  -- CHANGED: password_hash → password
       VALUES ($1, $2, $3) 
       RETURNING user_id, name, email, created_at
     `;

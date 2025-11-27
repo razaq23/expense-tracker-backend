@@ -1,14 +1,24 @@
 import express from 'express';
-import User from "../models/User.js"
-import { generateToken } from '../utils/jwtUtils.js';
+import User from "../models/User.js";
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
+// Generate token directly in this file
+const generateToken = (userId) => {
+  console.log('🔐 Generating token with JWT_SECRET:', process.env.JWT_SECRET ? 'Set' : 'Not set');
+  return jwt.sign(
+    { userId },
+    process.env.JWT_SECRET || 'fallback-secret',
+    { expiresIn: '7d' }
+  );
+};
+
 // @route   POST /api/auth/signup
-// @desc    Register new user
-// @access  Public
 router.post('/signup', async (req, res) => {
   try {
+    console.log('🔄 Signup attempt:', req.body);
+    
     const { name, email, password } = req.body;
 
     // Validation
@@ -34,6 +44,7 @@ router.post('/signup', async (req, res) => {
 
     // Create user
     const user = await User.create({ name, email, password });
+    console.log('✅ User created:', user);
 
     // Generate token
     const token = generateToken(user.user_id);
@@ -51,18 +62,18 @@ router.post('/signup', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Signup error:', error);
+    console.error('❌ Signup error:', error);
     res.status(500).json({
-      error: 'Server error during registration'
+      error: 'Server error during registration: ' + error.message
     });
   }
 });
 
 // @route   POST /api/auth/login  
-// @desc    Login user
-// @access  Public
 router.post('/login', async (req, res) => {
   try {
+    console.log('🔄 Login attempt:', req.body);
+    
     const { email, password } = req.body;
 
     // Validation
@@ -80,8 +91,11 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Check password
+    console.log('📊 User found, checking password...');
+
+    // Check password - FIXED: Use 'password' from database (not password_hash)
     const isPasswordValid = await User.comparePassword(password, user.password);
+    
     if (!isPasswordValid) {
       return res.status(400).json({
         error: 'Invalid credentials'
@@ -104,9 +118,9 @@ router.post('/login', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('❌ Login error:', error);
     res.status(500).json({
-      error: 'Server error during login'
+      error: 'Server error during login: ' + error.message
     });
   }
 });
