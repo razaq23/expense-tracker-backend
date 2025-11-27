@@ -1,4 +1,4 @@
-import pool from '../config/database.js';
+import {pool} from '../config/database.js';
 
 class Analytics {
   // Get comprehensive overview for a date range
