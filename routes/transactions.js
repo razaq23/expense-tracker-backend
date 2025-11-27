@@ -2,7 +2,7 @@ import express from 'express';
 import Transaction from '../models/Transactionda.js'; // Fixed import name
 import Category from '../models/Categoryda.js'; // Fixed import name
 import { auth } from '../middleware/auth.js';
-import pool from '../config/database.js';
+import {pool} from '../config/database.js';
 
 const router = express.Router();
 
